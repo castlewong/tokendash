@@ -1,8 +1,8 @@
 import { type Request, type Response } from 'express';
-import { runCcusage, runCodex } from '../ccusage.js';
+import { runCcusage } from '../ccusage.js';
 import { cache } from '../cache.js';
 import { validateProjects } from '../../shared/schemas.js';
-import { normalizeCodexProjectsResponse } from '../codexNormalizer.js';
+import { getProjectsResponse } from '../codexParser.js';
 
 export async function getProjects(req: Request, res: Response): Promise<void> {
   const agent = req.query.agent as string || 'claude';
@@ -15,11 +15,9 @@ export async function getProjects(req: Request, res: Response): Promise<void> {
     }
 
     if (agent === 'codex') {
-      const stdout = await runCodex(['daily']);
-      const data = JSON.parse(stdout);
-      const normalized = normalizeCodexProjectsResponse(data);
-      cache.set(cacheKey, normalized);
-      res.json(normalized);
+      const data = getProjectsResponse();
+      cache.set(cacheKey, data);
+      res.json(data);
     } else {
       const stdout = await runCcusage(['daily', '--instances', '--breakdown']);
       const data = JSON.parse(stdout);

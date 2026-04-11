@@ -1,5 +1,9 @@
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
+import { access, constants } from 'node:fs/promises';
+import { join } from 'node:path';
+import { homedir } from 'node:os';
+import { isSessionsDirAccessible } from './codexParser.js';
 
 const execFileAsync = promisify(execFile);
 
@@ -53,22 +57,16 @@ async function runCcusageCommand(args: string[], timeout: number, asJson: boolea
   }
 }
 
-async function runCodexCommand(args: string[], timeout: number, asJson: boolean): Promise<string> {
-  return runCommand({
-    command: 'npx',
-    args: ['--yes', '@ccusage/codex@latest', ...withJsonFlag(args, asJson)],
-  }, timeout);
-}
-
 export async function runCcusage(args: string[], timeout = 30_000): Promise<string> {
   return runCcusageCommand(args, timeout, true);
 }
 
-export async function runCodex(args: string[], timeout = 30_000): Promise<string> {
-  return runCodexCommand(args, timeout, true);
-}
-
 export async function ensureUsageToolsReady(): Promise<void> {
+  // Claude Code: check ccusage CLI
   await runCcusageCommand(['--version'], 120_000, false);
-  await runCodexCommand(['--help'], 120_000, false);
+
+  // Codex: check local sessions directory (instant, no npm subprocess)
+  if (!isSessionsDirAccessible()) {
+    throw new Error('Codex sessions directory not found at ~/.codex/sessions/');
+  }
 }

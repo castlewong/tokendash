@@ -2,8 +2,17 @@ import type { DailyResponse, MonthlyResponse, SessionResponse, ProjectsResponse,
 
 const BASE = '/api';
 
-function qs(agent: string): string {
-  return agent === 'codex' ? '?agent=codex' : '';
+function qs(agent: string, extra?: Record<string, string>): string {
+  const parts: string[] = [];
+  if (agent === 'codex') parts.push('agent=codex');
+  if (extra) {
+    const keys = Object.keys(extra);
+    for (let i = 0; i < keys.length; i++) {
+      const val = extra[keys[i]];
+      if (val) parts.push(encodeURIComponent(keys[i]) + '=' + encodeURIComponent(val));
+    }
+  }
+  return parts.length > 0 ? '?' + parts.join('&') : '';
 }
 
 export async function fetchDaily(agent = 'claude'): Promise<DailyResponse> {
@@ -38,8 +47,8 @@ export async function fetchProjects(agent = 'claude'): Promise<ProjectsResponse>
   return res.json();
 }
 
-export async function fetchBlocks(agent = 'claude'): Promise<BlocksResponse> {
-  const res = await fetch(`${BASE}/blocks${qs(agent)}`);
+export async function fetchBlocks(agent = 'claude', project = ''): Promise<BlocksResponse> {
+  const res = await fetch(`${BASE}/blocks${qs(agent, project ? { project } : undefined)}`);
   if (!res.ok) {
     throw new Error(`Failed to fetch blocks data: ${res.status} ${res.statusText}`);
   }

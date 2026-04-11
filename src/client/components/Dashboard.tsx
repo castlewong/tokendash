@@ -16,7 +16,7 @@ const C = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9', '#8b5cf6', '#e
 const TIME_RANGES = [
   { key: '7d', label: '7D', days: 7 },
   { key: '30d', label: '30D', days: 30 },
-  { key: '90d', label: '90D', days: 90 },
+  { key: '60d', label: '60D', days: 60 },
 ] as const;
 
 type TimeRangeKey = typeof TIME_RANGES[number]['key'];
@@ -104,7 +104,8 @@ function ProjectSelect({ projects, value, onChange }: { projects: string[]; valu
 /* ---- Aggregation helpers ---- */
 
 function filterByTime<T extends { date?: string; startTime?: string }>(data: T[], rangeKey: TimeRangeKey): T[] {
-  const days = TIME_RANGES.find(t => t.key === rangeKey)!.days;
+  const range = TIME_RANGES.find(t => t.key === rangeKey);
+  const days = range ? range.days : 30;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
   return data.filter(d => {
@@ -155,12 +156,14 @@ export function Dashboard() {
   const [agent, setAgent] = useLocalStorageState<'claude' | 'codex'>('dashboard_agent', 'claude');
   const isCodex = agent === 'codex';
 
-  const dailyData = useCcusageData(useCallback(() => fetchDaily(agent), [agent]));
-  const projectsData = useCcusageData(useCallback(() => fetchProjects(agent), [agent]));
-  const blocksData = useCcusageData(useCallback(() => fetchBlocks(agent), [agent]));
-
   const [timeRange, setTimeRange] = useLocalStorageState<TimeRangeKey>('dashboard_timeRange', '30d');
   const [project, setProject] = useLocalStorageState('dashboard_project', '');
+
+  const dailyData = useCcusageData(useCallback(() => fetchDaily(agent), [agent]));
+  const projectsData = useCcusageData(useCallback(() => fetchProjects(agent), [agent]));
+  // Claude blocks don't support project filter (ccusage limitation), only Codex does
+  const blocksProject = isCodex ? project : '';
+  const blocksData = useCcusageData(useCallback(() => fetchBlocks(agent, blocksProject), [agent, blocksProject]));
   const [metric, setMetric] = useLocalStorageState<MetricMode>('dashboard_metric', 'tokens');
 
   const handleAgentChange = (a: 'claude' | 'codex') => {
@@ -364,7 +367,7 @@ export function Dashboard() {
               <FilterTab options={TIME_RANGES} value={timeRange} onChange={v => setTimeRange(v as TimeRangeKey)} />
             </div>
 
-            {!isCodex && (
+            {projectList.length > 0 && (
               <>
                 <div className="w-px h-10 bg-stone-200/60 hidden sm:block"></div>
                 <div className="flex flex-col gap-2">
@@ -426,7 +429,7 @@ export function Dashboard() {
           </ResponsiveContainer>
         </Panel>
 
-        {!isCodex && !project ? (
+        {!project ? (
           <Panel title="Project distribution" subtitle={`Top 8 projects by ${isTokens ? 'tokens' : 'cost'}`}>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={projectPieData.slice(0, 8)} layout="vertical" margin={{ left: 8, right: 8, top: 0, bottom: 0 }}>
@@ -442,7 +445,7 @@ export function Dashboard() {
               </BarChart>
             </ResponsiveContainer>
           </Panel>
-        ) : !isCodex && project ? (
+        ) : project ? (
           <Panel title="Per-model breakdown">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={modelAgg} layout="vertical">

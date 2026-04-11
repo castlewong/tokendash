@@ -2,14 +2,24 @@ import { type Request, type Response } from 'express';
 import { runCcusage } from '../ccusage.js';
 import { cache } from '../cache.js';
 import { validateBlocks } from '../../shared/schemas.js';
-import { emptyBlocksResponse } from '../codexNormalizer.js';
+import { getBlocksResponse } from '../codexParser.js';
 
 export async function getBlocks(req: Request, res: Response): Promise<void> {
   const agent = req.query.agent as string || 'claude';
   const cacheKey = `blocks:${agent}`;
   try {
     if (agent === 'codex') {
-      res.json(emptyBlocksResponse());
+      const project = req.query.project as string || undefined;
+      const projectCacheKey = `blocks:${agent}:${project || 'all'}`;
+      const cached = cache.get(projectCacheKey);
+      if (cached) {
+        res.json(cached);
+        return;
+      }
+
+      const data = getBlocksResponse({ project: project || null });
+      cache.set(projectCacheKey, data);
+      res.json(data);
       return;
     }
 

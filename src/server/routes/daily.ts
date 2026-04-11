@@ -1,8 +1,8 @@
 import { type Request, type Response } from 'express';
-import { runCcusage, runCodex } from '../ccusage.js';
+import { runCcusage } from '../ccusage.js';
 import { cache } from '../cache.js';
 import { validateDaily } from '../../shared/schemas.js';
-import { normalizeCodexDailyResponse } from '../codexNormalizer.js';
+import { getDailyResponse } from '../codexParser.js';
 
 export async function getDaily(req: Request, res: Response): Promise<void> {
   const agent = req.query.agent as string || 'claude';
@@ -15,11 +15,9 @@ export async function getDaily(req: Request, res: Response): Promise<void> {
     }
 
     if (agent === 'codex') {
-      const stdout = await runCodex(['daily']);
-      const data = JSON.parse(stdout);
-      const normalized = normalizeCodexDailyResponse(data);
-      cache.set(cacheKey, normalized);
-      res.json(normalized);
+      const data = getDailyResponse();
+      cache.set(cacheKey, data);
+      res.json(data);
     } else {
       const stdout = await runCcusage(['daily', '--breakdown']);
       const data = JSON.parse(stdout);
