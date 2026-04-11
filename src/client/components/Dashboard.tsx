@@ -6,16 +6,16 @@ import {
 } from 'recharts';
 import { fetchDaily, fetchProjects } from '../api/client.js';
 import { useCcusageData } from '../hooks/useCcusageData.js';
-import { formatDate, formatTokens, formatUSD, formatPercent } from '../utils/formatters.js';
+import { useLocalStorageState } from '../hooks/useLocalStorageState.js';
+import { formatDate, formatTokens, formatUSD, formatPercent, formatProjectName } from '../utils/formatters.js';
 import { shortModelName } from '../utils/modelNames.js';
 import type { DailyEntry, MetricMode } from '../../shared/types.js';
 
-const C = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#ec4899', '#84cc16'];
+const C = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9', '#8b5cf6', '#ef4444', '#14b8a6'];
 const TIME_RANGES = [
   { key: '7d', label: '7D', days: 7 },
   { key: '30d', label: '30D', days: 30 },
   { key: '90d', label: '90D', days: 90 },
-  { key: 'all', label: 'All', days: Infinity },
 ] as const;
 
 type TimeRangeKey = typeof TIME_RANGES[number]['key'];
@@ -24,14 +24,14 @@ type TimeRangeKey = typeof TIME_RANGES[number]['key'];
 
 function InsightCard({ label, title, detail, badge }: { label: string; title: string; detail: string; badge?: string }) {
   return (
-    <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white/60 p-4 shadow-sm backdrop-blur-sm">
-      <div className="mb-2 flex items-start justify-between gap-3">
-        <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-gray-400">{label}</p>
-        {badge ? <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-700">{badge}</span> : null}
+    <div className="flex flex-col justify-between rounded-2xl bg-white p-5 shadow-[0_1px_3px_rgba(120,113,108,0.06)] transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(120,113,108,0.09)]">
+      <div className="mb-3 flex items-start justify-between gap-3">
+        <p className="text-[12px] font-medium text-stone-400">{label}</p>
+        {badge ? <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold tracking-wide text-indigo-600">{badge}</span> : null}
       </div>
       <div>
-        <p className="text-2xl font-black tracking-tight text-gray-900">{title}</p>
-        <p className="mt-1 text-xs font-medium leading-relaxed text-gray-500">{detail}</p>
+        <p className="text-2xl font-extrabold tracking-tight text-stone-900">{title}</p>
+        <p className="mt-1.5 text-[13px] font-medium leading-relaxed text-stone-500">{detail}</p>
       </div>
     </div>
   );
@@ -39,21 +39,21 @@ function InsightCard({ label, title, detail, badge }: { label: string; title: st
 
 function KPICard({ label, value, sub, insight, accent }: { label: string; value: string; sub?: string; insight?: string; accent?: boolean }) {
   return (
-    <div className="flex flex-col gap-1 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
-      <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400">{label}</span>
-      <span className={`text-3xl font-black tracking-tighter font-mono mt-1 ${accent ? 'text-emerald-600' : 'text-gray-900'}`}>{value}</span>
-      {sub && <span className="text-xs font-medium text-gray-400 mt-0.5">{sub}</span>}
-      {insight && <div className="mt-2 pt-2 border-t border-gray-100 text-[11px] font-medium text-gray-500 leading-snug">{insight}</div>}
+    <div className="flex flex-col gap-1 p-5 rounded-2xl bg-white shadow-[0_1px_3px_rgba(120,113,108,0.06)] transition-shadow duration-200 hover:shadow-[0_4px_12px_rgba(120,113,108,0.09)]">
+      <span className="text-[12px] font-medium text-stone-400">{label}</span>
+      <span className={`text-3xl font-extrabold tracking-tighter font-mono mt-1 ${accent ? 'text-indigo-600' : 'text-stone-900'}`}>{value}</span>
+      {sub && <span className="text-xs font-medium text-stone-400 mt-0.5">{sub}</span>}
+      {insight && <div className="mt-2.5 pt-2.5 border-t border-stone-100 text-[12px] font-medium text-stone-500 leading-relaxed">{insight}</div>}
     </div>
   );
 }
 
 function Panel({ title, subtitle, children, className = '' }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className={`flex flex-col rounded-xl bg-white border border-gray-200 p-5 shadow-sm ${className}`}>
+    <div className={`flex flex-col rounded-2xl bg-white p-5 shadow-[0_1px_3px_rgba(120,113,108,0.06)] ${className}`}>
       <div className="mb-5">
-        <h3 className="text-base font-bold text-gray-900 tracking-tight">{title}</h3>
-        {subtitle && <p className="text-xs font-medium text-gray-500 mt-1">{subtitle}</p>}
+        <h3 className="text-[15px] font-semibold text-stone-900 tracking-tight">{title}</h3>
+        {subtitle && <p className="text-[13px] font-medium text-stone-400 mt-1">{subtitle}</p>}
       </div>
       <div className="flex-1 min-h-0">
         {children}
@@ -65,12 +65,12 @@ function Panel({ title, subtitle, children, className = '' }: { title: string; s
 function TooltipBox({ active, payload, label, fmt = formatTokens }: { active?: boolean; payload?: Array<{ name: string; value: number; color: string }>; label?: string; fmt?: (v: number) => string }) {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-200 rounded-lg px-3 py-2.5 shadow-lg shadow-black/8 text-[11px]">
-      {label && <div className="text-gray-500 mb-1.5 font-medium">{label}</div>}
+    <div className="bg-white rounded-xl px-3.5 py-3 shadow-[0_8px_30px_rgba(120,113,108,0.12)] text-[11px] border border-stone-200/40">
+      {label && <div className="text-stone-400 mb-1.5 font-medium">{label}</div>}
       {payload.map((p, i) => (
         <div key={i} className="flex items-center justify-between gap-5">
           <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: p.color }} />{p.name}</span>
-          <span className="font-mono text-gray-800">{fmt(p.value)}</span>
+          <span className="font-mono text-stone-700">{fmt(p.value)}</span>
         </div>
       ))}
     </div>
@@ -79,10 +79,10 @@ function TooltipBox({ active, payload, label, fmt = formatTokens }: { active?: b
 
 function FilterTab({ options, value, onChange }: { options: readonly { key: string; label: string }[]; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex items-center gap-0.5 p-0.5 bg-gray-100/80 rounded-lg border border-gray-200">
+    <div className="flex items-center gap-0.5 p-0.5 bg-stone-100 rounded-lg">
       {options.map(o => (
         <button key={o.key} onClick={() => onChange(o.key)}
-          className={`px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wide transition-all duration-200 ${value === o.key ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+          className={`px-3 py-1.5 rounded-md text-[11px] font-semibold tracking-wide transition-all duration-200 ${value === o.key ? 'bg-stone-800 text-white shadow-sm' : 'text-stone-500 hover:text-stone-800 hover:bg-stone-50'}`}>
           {o.label}
         </button>
       ))}
@@ -93,9 +93,9 @@ function FilterTab({ options, value, onChange }: { options: readonly { key: stri
 function ProjectSelect({ projects, value, onChange }: { projects: string[]; value: string; onChange: (v: string) => void }) {
   return (
     <select value={value} onChange={e => onChange(e.target.value)}
-      className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-[12px] font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 max-w-[220px]">
+      className="bg-white border border-stone-200 rounded-lg px-3 py-1.5 text-[12px] font-semibold text-stone-800 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 max-w-[220px]">
       <option value="">All Projects</option>
-      {projects.map(p => <option key={p} value={p}>{p.split('/').pop() || p}</option>)}
+      {projects.map(p => <option key={p} value={p}>{formatProjectName(p, projects)}</option>)}
     </select>
   );
 }
@@ -103,7 +103,6 @@ function ProjectSelect({ projects, value, onChange }: { projects: string[]; valu
 /* ---- Aggregation helpers ---- */
 
 function filterByTime<T extends { date?: string; startTime?: string }>(data: T[], rangeKey: TimeRangeKey): T[] {
-  if (rangeKey === 'all') return data;
   const days = TIME_RANGES.find(t => t.key === rangeKey)!.days;
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - days);
@@ -152,15 +151,15 @@ function filterProjectDaily(projects: Record<string, DailyEntry[]>, project: str
 /* ---- Main Dashboard ---- */
 
 export function Dashboard() {
-  const [agent, setAgent] = useState<'claude' | 'codex'>('claude');
+  const [agent, setAgent] = useLocalStorageState<'claude' | 'codex'>('dashboard_agent', 'claude');
   const isCodex = agent === 'codex';
 
   const dailyData = useCcusageData(useCallback(() => fetchDaily(agent), [agent]));
   const projectsData = useCcusageData(useCallback(() => fetchProjects(agent), [agent]));
 
-  const [timeRange, setTimeRange] = useState<TimeRangeKey>('30d');
-  const [project, setProject] = useState('');
-  const [metric, setMetric] = useState<MetricMode>('tokens');
+  const [timeRange, setTimeRange] = useLocalStorageState<TimeRangeKey>('dashboard_timeRange', '30d');
+  const [project, setProject] = useLocalStorageState('dashboard_project', '');
+  const [metric, setMetric] = useLocalStorageState<MetricMode>('dashboard_metric', 'tokens');
 
   const handleAgentChange = (a: 'claude' | 'codex') => {
     setAgent(a);
@@ -255,7 +254,7 @@ export function Dashboard() {
       .map(([path, entries]) => {
         const filtered = filterByTime(entries, timeRange);
         return {
-          name: path.split('/').pop() || path,
+          name: formatProjectName(path, projectList),
           full: path,
           tokens: filtered.reduce((s, e) => s + e.totalTokens, 0),
           cost: filtered.reduce((s, e) => s + e.totalCost, 0),
@@ -273,20 +272,53 @@ export function Dashboard() {
     hitRate: d.inputTokens > 0 ? (d.cacheReadTokens / (d.cacheReadTokens + d.inputTokens)) * 100 : 0,
   })), [filteredDaily]);
 
+  const renderAgentSwitcher = () => (
+    <div className="flex items-center gap-1 p-1 bg-stone-200/50 rounded-xl w-fit shadow-inner border border-stone-200/50">
+      <button
+        onClick={() => handleAgentChange('claude')}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-bold tracking-wide transition-all duration-200 ${agent === 'claude'
+          ? 'bg-white text-indigo-600 shadow-[0_1px_3px_rgba(0,0,0,0.1)] ring-1 ring-stone-900/5'
+          : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+          }`}
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        Claude Code
+      </button>
+      <button
+        onClick={() => handleAgentChange('codex')}
+        className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-[13px] font-bold tracking-wide transition-all duration-200 ${agent === 'codex'
+          ? 'bg-white text-emerald-600 shadow-[0_1px_3px_rgba(0,0,0,0.1)] ring-1 ring-stone-900/5'
+          : 'text-stone-500 hover:text-stone-800 hover:bg-stone-200/50'
+          }`}
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+        Codex
+      </button>
+    </div>
+  );
+
   if (isLoading) {
     return (
       <div className="max-w-[1440px] mx-auto px-6 py-10">
-        <div className="skeleton h-8 w-48 rounded mb-2" />
-        <div className="skeleton h-4 w-72 rounded mb-8" />
-        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">{[...Array(6)].map((_, i) => <div key={i} className="skeleton h-20 rounded-xl" />)}</div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"><div className="skeleton h-72 rounded-xl" /><div className="skeleton h-72 rounded-xl" /></div>
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+          <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Usage analytics</h1>
+          {renderAgentSwitcher()}
+        </div>
+        <div className="skeleton h-8 w-48 rounded-lg mb-2" />
+        <div className="skeleton h-4 w-72 rounded-lg mb-8" />
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-3 mb-6">{[...Array(6)].map((_, i) => <div key={i} className="skeleton h-20 rounded-2xl" />)}</div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4"><div className="skeleton h-72 rounded-2xl" /><div className="skeleton h-72 rounded-2xl" /></div>
       </div>
     );
   }
 
   if (error) return (
     <div className="max-w-[1440px] mx-auto px-6 py-10">
-      <div className="rounded-xl bg-red-50 border border-red-200 p-5"><div className="text-red-600 text-sm">{error}</div></div>
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+        <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Usage analytics</h1>
+        {renderAgentSwitcher()}
+      </div>
+      <div className="rounded-2xl bg-red-50 border border-red-200/60 p-5"><div className="text-red-600 text-sm font-medium">{error}</div></div>
     </div>
   );
 
@@ -295,45 +327,41 @@ export function Dashboard() {
   return (
     <div className="max-w-[1440px] mx-auto px-6 py-10">
       {/* Narrative Header & Filter Bar */}
-      <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 mb-1.5">Usage Analytics</h1>
-          <p className="text-[14px] font-medium text-gray-500 leading-relaxed">
-            Currently viewing <span className="font-bold text-gray-800">{isCodex ? 'Codex' : 'Claude'}</span> usage
-            for <span className="font-bold text-gray-800">{TIME_RANGES.find(t => t.key === timeRange)?.label}</span>
-            {project ? <span> in project <span className="font-bold text-gray-800">{project.split('/').pop() || project}</span></span> : ' across all projects'}.
-          </p>
+      <div className="mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-6">
+          <div className="flex flex-col md:flex-row items-start md:items-baseline gap-3 md:gap-4">
+            <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Usage analytics</h1>
+            <p className="text-[14px] font-medium text-stone-500 leading-relaxed">
+              Currently viewing <span className="font-semibold text-stone-700">{isCodex ? 'Codex' : 'Claude'}</span> usage
+              for <span className="font-semibold text-stone-700">{TIME_RANGES.find(t => t.key === timeRange)?.label}</span>
+              {project ? <span> in project <span className="font-semibold text-stone-700">{formatProjectName(project, projectList)}</span></span> : ' across all projects'}.
+            </p>
+          </div>
+          {renderAgentSwitcher()}
         </div>
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="flex flex-col gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Provider</span>
-            <div className="flex items-center gap-0.5 p-0.5 bg-gray-100/80 rounded-lg border border-gray-200">
-              <button onClick={() => handleAgentChange('claude')}
-                className={`px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wide transition-all duration-200 ${agent === 'claude' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-                Claude
-              </button>
-              <button onClick={() => handleAgentChange('codex')}
-                className={`px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wide transition-all duration-200 ${agent === 'codex' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
-                Codex
-              </button>
-            </div>
-          </div>
 
-          <div className="flex flex-col gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Time Range</span>
-            <FilterTab options={TIME_RANGES} value={timeRange} onChange={v => setTimeRange(v as TimeRangeKey)} />
-          </div>
-
-          {!isCodex && (
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-wrap items-center gap-6 p-4 bg-white rounded-2xl border border-stone-200/50 shadow-sm w-fit">
             <div className="flex flex-col gap-2">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Project</span>
-              <ProjectSelect projects={projectList} value={project} onChange={setProject} />
+              <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Time range</span>
+              <FilterTab options={TIME_RANGES} value={timeRange} onChange={v => setTimeRange(v as TimeRangeKey)} />
             </div>
-          )}
 
-          <div className="flex flex-col gap-2">
-            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Metric</span>
-            <FilterTab options={[{ key: 'tokens', label: 'Tokens' }, { key: 'usd', label: 'Cost' }]} value={metric} onChange={v => setMetric(v as MetricMode)} />
+            {!isCodex && (
+              <>
+                <div className="w-px h-10 bg-stone-200/60 hidden sm:block"></div>
+                <div className="flex flex-col gap-2">
+                  <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Project</span>
+                  <ProjectSelect projects={projectList} value={project} onChange={setProject} />
+                </div>
+              </>
+            )}
+
+            <div className="w-px h-10 bg-stone-200/60 hidden sm:block"></div>
+            <div className="flex flex-col gap-2">
+              <span className="text-[11px] font-semibold text-stone-400 uppercase tracking-wider">Metric</span>
+              <FilterTab options={[{ key: 'tokens', label: 'Tokens' }, { key: 'usd', label: 'Cost' }]} value={metric} onChange={v => setMetric(v as MetricMode)} />
+            </div>
           </div>
         </div>
       </div>
@@ -348,7 +376,7 @@ export function Dashboard() {
         />
         {!isCodex && !project ? (
           <InsightCard
-            label="Highest Usage"
+            label="Highest usage"
             title={projectPieData.length > 0 ? projectPieData[0].name : '-'}
             detail={`Top project consumed ${projectPieData.length > 0 ? (isTokens ? formatTokens(projectPieData[0].tokens) : formatUSD(projectPieData[0].cost)) : '0'} total.`}
             badge="Project"
@@ -356,13 +384,13 @@ export function Dashboard() {
         ) : (
           <InsightCard
             label="Focus"
-            title={project ? project.split('/').pop() || project : 'Codex Global'}
+            title={project ? formatProjectName(project, projectList) : 'Codex Global'}
             detail={project ? 'Analyzing specific project usage pattern.' : 'Reviewing global Codex metrics.'}
             badge="Scope"
           />
         )}
         <InsightCard
-          label="Trend Focus"
+          label="Trend focus"
           title="Top 6 Models"
           detail="Trends are filtered to the top 6 contributing models to reduce noise."
           badge="View"
@@ -371,39 +399,39 @@ export function Dashboard() {
 
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
-        <KPICard label="Total Tokens" value={formatTokens(totals.totalTokens)} accent insight="The primary volume indicator for the selected period." />
-        <KPICard label="Total Cost" value={formatUSD(totals.totalCost)} insight="Estimated spend based on current pricing." />
-        <KPICard label="Daily Avg" value={formatTokens(activeDays > 0 ? totals.totalTokens / activeDays : 0)} sub={`${activeDays} active days`} insight="Baseline for typical daily volume." />
-        <KPICard label="Peak Day" value={formatTokens(peakDay.tokens)} sub={peakDay.date !== '-' ? formatDate(peakDay.date) : undefined} insight="Highest single day usage." />
-        <KPICard label="Cache Hit" value={formatPercent(cacheHitRate)} insight="Higher hit rate reduces cost." />
+        <KPICard label="Total tokens" value={formatTokens(totals.totalTokens)} accent insight="The primary volume indicator for the selected period." />
+        <KPICard label="Total cost" value={formatUSD(totals.totalCost)} insight="Estimated spend based on current pricing." />
+        <KPICard label="Daily avg" value={formatTokens(activeDays > 0 ? totals.totalTokens / activeDays : 0)} sub={`${activeDays} active days`} insight="Baseline for typical daily volume." />
+        <KPICard label="Peak day" value={formatTokens(peakDay.tokens)} sub={peakDay.date !== '-' ? formatDate(peakDay.date) : undefined} insight="Highest single day usage." />
+        <KPICard label="Cache hit" value={formatPercent(cacheHitRate)} insight="Higher hit rate reduces cost." />
         <KPICard label="Output/Input" value={formatPercent(outputRatio)} insight="Ratio of generation to context." />
       </div>
 
       {/* Row 1: Usage Over Time (full width) */}
-      <Panel title="Usage Over Time" className="mb-4">
+      <Panel title="Usage over time" className="mb-4">
         <ResponsiveContainer width="100%" height={300}>
           <ComposedChart data={trendData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-            <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-            <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
+            <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
+            <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
+            <YAxis tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
             <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
             <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
             {isTokens && <Bar dataKey="cacheRead" stackId="a" fill={C[0]} fillOpacity={0.7} name="Cache Read" maxBarSize={24} />}
             {isTokens && <Bar dataKey="input" stackId="a" fill={C[1]} fillOpacity={0.7} name="Input" maxBarSize={24} />}
             {isTokens && <Bar dataKey="output" stackId="a" fill={C[2]} fillOpacity={0.7} name="Output" maxBarSize={24} />}
-            {!isTokens && <Area type="monotone" dataKey="cost" stroke={C[1]} fill={C[1]} fillOpacity={0.15} name="Cost" strokeWidth={1.5} />}
+            {!isTokens && <Area type="monotone" dataKey="cost" stroke={C[0]} fill={C[0]} fillOpacity={0.1} name="Cost" strokeWidth={1.5} />}
           </ComposedChart>
         </ResponsiveContainer>
       </Panel>
 
       {/* Row 2: Model Trend (left 60%) + Model Distribution (right 40%) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-        <Panel title="Model Trend" subtitle="Showing top 6 models to maintain readability" className="lg:col-span-3">
+        <Panel title="Model trend" subtitle="Showing top 6 models to maintain readability" className="lg:col-span-3">
           <ResponsiveContainer width="100%" height={260}>
             <LineChart data={modelTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
               <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
               {modelAgg.slice(0, 6).map((m, i) => (
@@ -413,14 +441,14 @@ export function Dashboard() {
           </ResponsiveContainer>
         </Panel>
 
-        <Panel title="Model Distribution" subtitle="Ranked by total volume" className="lg:col-span-2">
+        <Panel title="Model distribution" subtitle="Ranked by total volume" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={260}>
             <BarChart data={modelAgg.slice(0, 6)} layout="vertical" margin={{ left: 8, right: 8, top: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-              <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
-              <YAxis type="category" dataKey="name" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} width={92} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" horizontal={false} />
+              <XAxis type="number" tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#57534e', fontSize: 11 }} axisLine={false} tickLine={false} width={92} />
               <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
-              <Bar dataKey={dataKey} radius={[0, 4, 4, 0]} maxBarSize={24}>
+              <Bar dataKey={dataKey} radius={[0, 6, 6, 0]} maxBarSize={24}>
                 {modelAgg.slice(0, 6).map((_, index) => (
                   <Cell key={index} fill={C[index % C.length]} fillOpacity={0.85} />
                 ))}
@@ -433,14 +461,14 @@ export function Dashboard() {
       {/* Row 3: Project Pie (left) + Cache Efficiency (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {!isCodex && !project ? (
-          <Panel title="Project Distribution" subtitle={`Top 8 projects by ${isTokens ? 'Tokens' : 'Cost'}`}>
+          <Panel title="Project distribution" subtitle={`Top 8 projects by ${isTokens ? 'tokens' : 'cost'}`}>
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={projectPieData.slice(0, 8)} layout="vertical" margin={{ left: 8, right: 8, top: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                <XAxis type="number" tick={{ fill: '#64748b', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#475569', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" horizontal={false} />
+                <XAxis type="number" tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
+                <YAxis type="category" dataKey="name" tick={{ fill: '#57534e', fontSize: 11 }} axisLine={false} tickLine={false} width={110} />
                 <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
-                <Bar dataKey={dataKey} radius={[0, 4, 4, 0]} maxBarSize={24}>
+                <Bar dataKey={dataKey} radius={[0, 6, 6, 0]} maxBarSize={24}>
                   {projectPieData.slice(0, 8).map((_, index) => (
                     <Cell key={index} fill={C[index % C.length]} fillOpacity={0.85} />
                   ))}
@@ -449,12 +477,12 @@ export function Dashboard() {
             </ResponsiveContainer>
           </Panel>
         ) : !isCodex && project ? (
-          <Panel title="Per-Model Breakdown">
+          <Panel title="Per-model breakdown">
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={modelAgg} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" horizontal={false} />
-                <XAxis type="number" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatTokens(v)} />
-                <YAxis type="category" dataKey="name" tick={{ fill: '#4b5563', fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" horizontal={false} />
+                <XAxis type="number" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatTokens(v)} />
+                <YAxis type="category" dataKey="name" tick={{ fill: '#57534e', fontSize: 11 }} axisLine={false} tickLine={false} width={80} />
                 <Tooltip content={<TooltipBox />} />
                 <Bar dataKey="cacheRead" stackId="a" fill={C[0]} fillOpacity={0.7} name="Cache Read" maxBarSize={20} />
                 <Bar dataKey="input" stackId="a" fill={C[1]} fillOpacity={0.7} name="Input" maxBarSize={20} />
@@ -464,16 +492,16 @@ export function Dashboard() {
           </Panel>
         ) : null}
 
-        <Panel title="Cache Efficiency">
+        <Panel title="Cache efficiency">
           <ResponsiveContainer width="100%" height={280}>
             <ComposedChart data={cacheTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="left" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatTokens(v)} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fill: '#6b7280', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="left" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatTokens(v)} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
               <Tooltip content={<TooltipBox />} />
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
-              <Area yAxisId="left" type="monotone" dataKey="cacheRead" stroke={C[5]} fill={C[5]} fillOpacity={0.12} name="Cache Read" strokeWidth={1.5} />
+              <Area yAxisId="left" type="monotone" dataKey="cacheRead" stroke={C[5]} fill={C[5]} fillOpacity={0.08} name="Cache Read" strokeWidth={1.5} />
               <Line yAxisId="right" type="monotone" dataKey="hitRate" stroke={C[3]} strokeWidth={2} dot={false} name="Hit Rate (%)" />
             </ComposedChart>
           </ResponsiveContainer>
@@ -481,30 +509,30 @@ export function Dashboard() {
       </div>
 
       {/* Row 4: Detail Table */}
-      <Panel title="Daily Detail" subtitle="Recent 30 days of usage breakdown">
+      <Panel title="Daily detail" subtitle="Recent 30 days of usage breakdown">
         <div className="overflow-x-auto">
           <table className="w-full text-[11px] whitespace-nowrap">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50/50">
-                <th className="text-left py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Date</th>
-                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Input</th>
-                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Output</th>
-                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Cache Read</th>
-                <th className="text-right py-3 px-4 text-gray-800 font-bold uppercase tracking-widest text-[10px]">Total Tokens</th>
-                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Cost</th>
-                <th className="text-left py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Models</th>
+              <tr className="border-b border-stone-200">
+                <th className="text-left py-3 px-4 text-stone-400 font-semibold text-[10px]">Date</th>
+                <th className="text-right py-3 px-4 text-stone-400 font-semibold text-[10px]">Input</th>
+                <th className="text-right py-3 px-4 text-stone-400 font-semibold text-[10px]">Output</th>
+                <th className="text-right py-3 px-4 text-stone-400 font-semibold text-[10px]">Cache read</th>
+                <th className="text-right py-3 px-4 text-stone-600 font-semibold text-[10px]">Total tokens</th>
+                <th className="text-right py-3 px-4 text-stone-400 font-semibold text-[10px]">Cost</th>
+                <th className="text-left py-3 px-4 text-stone-400 font-semibold text-[10px]">Models</th>
               </tr>
             </thead>
             <tbody>
               {[...filteredDaily].reverse().slice(0, 30).map(d => (
-                <tr key={d.date} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                  <td className="py-2.5 px-4 text-gray-800 font-semibold">{formatDate(d.date)}</td>
-                  <td className="py-2.5 px-4 text-right font-mono text-gray-500">{formatTokens(d.inputTokens)}</td>
-                  <td className="py-2.5 px-4 text-right font-mono text-gray-500">{formatTokens(d.outputTokens)}</td>
-                  <td className="py-2.5 px-4 text-right font-mono text-emerald-600/70">{formatTokens(d.cacheReadTokens)}</td>
-                  <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-600">{formatTokens(d.totalTokens)}</td>
-                  <td className="py-2.5 px-4 text-right font-mono font-medium text-gray-700 bg-gray-50/50">{formatUSD(d.totalCost)}</td>
-                  <td className="py-2.5 px-4 text-gray-500 font-medium truncate max-w-[200px]">{d.modelsUsed.map(shortModelName).join(', ')}</td>
+                <tr key={d.date} className="border-b border-stone-100 hover:bg-stone-50/60 transition-colors">
+                  <td className="py-2.5 px-4 text-stone-800 font-semibold">{formatDate(d.date)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono text-stone-500">{formatTokens(d.inputTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono text-stone-500">{formatTokens(d.outputTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono text-indigo-500/70">{formatTokens(d.cacheReadTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono font-semibold text-indigo-600">{formatTokens(d.totalTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono font-medium text-stone-600 bg-stone-50/40">{formatUSD(d.totalCost)}</td>
+                  <td className="py-2.5 px-4 text-stone-500 font-medium truncate max-w-[200px]">{d.modelsUsed.map(shortModelName).join(', ')}</td>
                 </tr>
               ))}
             </tbody>
