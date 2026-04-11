@@ -4,12 +4,13 @@ import {
   ComposedChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
-import { fetchDaily, fetchProjects } from '../api/client.js';
+import { fetchDaily, fetchProjects, fetchBlocks } from '../api/client.js';
 import { useCcusageData } from '../hooks/useCcusageData.js';
 import { useLocalStorageState } from '../hooks/useLocalStorageState.js';
 import { formatDate, formatTokens, formatUSD, formatPercent, formatProjectName } from '../utils/formatters.js';
+import { costSavedByCache } from '../utils/cacheCalculations.js';
 import { shortModelName } from '../utils/modelNames.js';
-import type { DailyEntry, MetricMode } from '../../shared/types.js';
+import type { DailyEntry, MetricMode, BlockEntry } from '../../shared/types.js';
 
 const C = ['#4f46e5', '#10b981', '#f59e0b', '#ec4899', '#0ea5e9', '#8b5cf6', '#ef4444', '#14b8a6'];
 const TIME_RANGES = [
@@ -156,6 +157,7 @@ export function Dashboard() {
 
   const dailyData = useCcusageData(useCallback(() => fetchDaily(agent), [agent]));
   const projectsData = useCcusageData(useCallback(() => fetchProjects(agent), [agent]));
+  const blocksData = useCcusageData(useCallback(() => fetchBlocks(agent), [agent]));
 
   const [timeRange, setTimeRange] = useLocalStorageState<TimeRangeKey>('dashboard_timeRange', '30d');
   const [project, setProject] = useLocalStorageState('dashboard_project', '');
@@ -166,8 +168,8 @@ export function Dashboard() {
     setProject('');
   };
 
-  const isLoading = dailyData.loading || projectsData.loading;
-  const error = dailyData.error || projectsData.error;
+  const isLoading = dailyData.loading || projectsData.loading || blocksData.loading;
+  const error = dailyData.error || projectsData.error || blocksData.error;
   const isTokens = metric === 'tokens';
   const dataKey = isTokens ? 'tokens' : 'cost';
 
@@ -199,6 +201,15 @@ export function Dashboard() {
   }, [filteredDaily]);
   const cacheHitRate = totals.inputTokens > 0 ? (totals.cacheReadTokens / (totals.cacheReadTokens + totals.inputTokens)) * 100 : 0;
   const outputRatio = totals.inputTokens > 0 ? (totals.outputTokens / totals.inputTokens) * 100 : 0;
+
+  // Cache Savings Data
+  const cacheSavings = useMemo(() => {
+    return {
+      tokensSaved: totals.cacheReadTokens,
+      costSaved: costSavedByCache(totals.cacheReadTokens),
+      hitRate: cacheHitRate
+    };
+  }, [totals.cacheReadTokens, cacheHitRate]);
 
   // Chart data: usage over time
   const trendData = useMemo(() => {
@@ -271,6 +282,28 @@ export function Dashboard() {
     input: d.inputTokens,
     hitRate: d.inputTokens > 0 ? (d.cacheReadTokens / (d.cacheReadTokens + d.inputTokens)) * 100 : 0,
   })), [filteredDaily]);
+
+  // Heatmap Data (24h x 7days)
+  const heatmapData = useMemo(() => {
+    if (!blocksData.data) return null;
+    const filteredBlocks = filterByTime(blocksData.data.blocks, timeRange);
+
+    // Create 7x24 grid
+    const grid: number[][] = Array(7).fill(0).map(() => Array(24).fill(0));
+    let maxVal = 0;
+
+    for (const b of filteredBlocks) {
+      if (b.isGap) continue;
+      const date = new Date(b.startTime);
+      // 0 = Sunday, 1 = Monday... We want Monday = 0 for display usually, but let's stick to standard 0-6
+      const day = date.getDay();
+      const hour = date.getHours();
+      const val = isTokens ? b.totalTokens : b.costUSD;
+      grid[day][hour] += val;
+      if (grid[day][hour] > maxVal) maxVal = grid[day][hour];
+    }
+    return { grid, maxVal };
+  }, [blocksData.data, timeRange, isTokens]);
 
   const renderAgentSwitcher = () => (
     <div className="flex items-center gap-1 p-1 bg-stone-200/50 rounded-xl w-fit shadow-inner border border-stone-200/50">
@@ -492,8 +525,24 @@ export function Dashboard() {
           </Panel>
         ) : null}
 
-        <Panel title="Cache efficiency">
-          <ResponsiveContainer width="100%" height={280}>
+        <Panel title="Cache efficiency & savings">
+          <div className="flex items-center gap-6 mb-6 px-4 py-3 bg-emerald-50/50 rounded-xl border border-emerald-100/50">
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Est. Cost Saved</span>
+              <span className="text-2xl font-black text-emerald-600 tracking-tight">{formatUSD(cacheSavings.costSaved)}</span>
+            </div>
+            <div className="w-px h-8 bg-emerald-200/50"></div>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Tokens Saved</span>
+              <span className="text-lg font-extrabold text-emerald-700/80 tracking-tight font-mono">{formatTokens(cacheSavings.tokensSaved)}</span>
+            </div>
+            <div className="w-px h-8 bg-emerald-200/50"></div>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Avg Hit Rate</span>
+              <span className="text-lg font-extrabold text-emerald-700/80 tracking-tight font-mono">{formatPercent(cacheSavings.hitRate)}</span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={210}>
             <ComposedChart data={cacheTrendData}>
               <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
               <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
@@ -507,6 +556,48 @@ export function Dashboard() {
           </ResponsiveContainer>
         </Panel>
       </div>
+
+      {/* Heatmap Row */}
+      <Panel title="24-Hour Activity Heatmap" subtitle={`Activity distribution by hour and day of week (based on ${isTokens ? 'tokens' : 'cost'})`} className="mb-4">
+        {heatmapData ? (
+          <div className="flex flex-col w-full overflow-x-auto pb-2">
+            <div className="flex w-full min-w-[600px] gap-2">
+              <div className="w-8 shrink-0 flex flex-col justify-around text-[10px] font-medium text-stone-400 pt-0.5 pb-0.5">
+                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d} className="h-[22px] flex items-center">{d}</div>)}
+              </div>
+              <div className="flex-1 flex flex-col gap-1">
+                {heatmapData.grid.map((dayRow, dayIdx) => (
+                  <div key={dayIdx} className="flex gap-1 h-[22px]">
+                    {dayRow.map((val, hourIdx) => {
+                      const opacity = heatmapData.maxVal > 0 ? 0.15 + (val / heatmapData.maxVal) * 0.85 : 0;
+                      return (
+                        <div
+                          key={hourIdx}
+                          className="flex-1 rounded-[3px] relative group transition-all hover:ring-2 hover:ring-indigo-400 hover:ring-offset-1"
+                          style={{ backgroundColor: val > 0 ? `rgba(79, 70, 229, ${opacity})` : '#f5f5f4' }}
+                        >
+                          {val > 0 && (
+                            <div className="absolute opacity-0 group-hover:opacity-100 z-10 bg-stone-900 text-white text-[10px] px-2 py-1 rounded bottom-full mb-1.5 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap shadow-lg font-mono">
+                              {hourIdx}:00 - {isTokens ? formatTokens(val) + ' tokens' : formatUSD(val)}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className="flex ml-10 mt-1.5 text-[10px] font-medium text-stone-400">
+              {[...Array(24)].map((_, i) => (
+                <div key={i} className="flex-1 text-center">{i % 2 === 0 ? i : ''}</div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="h-48 flex items-center justify-center text-stone-400 text-sm">No session data available</div>
+        )}
+      </Panel>
 
       {/* Row 4: Detail Table */}
       <Panel title="Daily detail" subtitle="Recent 30 days of usage breakdown">
