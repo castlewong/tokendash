@@ -316,7 +316,9 @@ export function Dashboard() {
     return (
       <div className="max-w-[1440px] mx-auto px-6 py-10">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Usage analytics</h1>
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Tokens Dashboard</h1>
+          </div>
           {renderAgentSwitcher()}
         </div>
         <div className="skeleton h-8 w-48 rounded-lg mb-2" />
@@ -330,7 +332,9 @@ export function Dashboard() {
   if (error) return (
     <div className="max-w-[1440px] mx-auto px-6 py-10">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Usage analytics</h1>
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Tokens Dashboard</h1>
+        </div>
         {renderAgentSwitcher()}
       </div>
       <div className="rounded-2xl bg-red-50 border border-red-200/60 p-5"><div className="text-red-600 text-sm font-medium">{error}</div></div>
@@ -344,12 +348,10 @@ export function Dashboard() {
       {/* Narrative Header & Filter Bar */}
       <div className="mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-6">
-          <div className="flex flex-col md:flex-row items-start md:items-baseline gap-3 md:gap-4">
-            <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Usage analytics</h1>
+          <div className="flex flex-col gap-1.5">
+            <h1 className="text-3xl font-extrabold tracking-tight text-stone-900">Tokens Dashboard</h1>
             <p className="text-[14px] font-medium text-stone-500 leading-relaxed">
-              Currently viewing <span className="font-semibold text-stone-700">{isCodex ? 'Codex' : 'Claude'}</span> usage
-              for <span className="font-semibold text-stone-700">{TIME_RANGES.find(t => t.key === timeRange)?.label}</span>
-              {project ? <span> in project <span className="font-semibold text-stone-700">{formatProjectName(project, projectList)}</span></span> : ' across all projects'}.
+              Monitor token consumption, costs, and cache efficiency for your AI coding assistants.
             </p>
           </div>
           {renderAgentSwitcher()}
