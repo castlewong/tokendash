@@ -462,8 +462,8 @@ export function Dashboard() {
       {/* Row 2: Heatmap Row */}
       <Panel title="24-Hour Activity Heatmap" subtitle={`Activity distribution by hour and day of week (based on ${isTokens ? 'tokens' : 'cost'})`} className="mb-4">
         {heatmapData ? (
-          <div className="flex flex-col w-full overflow-x-auto pb-2">
-            <div className="flex w-full min-w-[600px] gap-2">
+          <div className="flex flex-col w-full pt-1 pb-2">
+            <div className="flex w-full gap-2">
               <div className="w-8 shrink-0 flex flex-col justify-around text-[10px] font-medium text-stone-400 pt-0.5 pb-0.5">
                 {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => <div key={d} className="h-[22px] flex items-center">{d}</div>)}
               </div>
@@ -475,11 +475,11 @@ export function Dashboard() {
                       return (
                         <div
                           key={hourIdx}
-                          className="flex-1 rounded-[3px] relative group transition-all hover:ring-2 hover:ring-emerald-400 hover:ring-offset-1"
+                          className="flex-1 rounded-[3px] relative group transition-all hover:ring-2 hover:ring-emerald-400 hover:ring-offset-1 hover:z-10"
                           style={{ backgroundColor: val > 0 ? `rgba(16, 185, 129, ${opacity})` : '#ebedf0' }}
                         >
                           {val > 0 && (
-                            <div className="absolute opacity-0 group-hover:opacity-100 z-10 bg-stone-900 text-white text-[10px] px-2 py-1 rounded bottom-full mb-1.5 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap shadow-lg font-mono">
+                            <div className="absolute opacity-0 group-hover:opacity-100 z-20 bg-stone-900 text-white text-[10px] px-2 py-1 rounded bottom-full mb-1.5 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap shadow-lg font-mono">
                               {hourIdx}:00 - {isTokens ? formatTokens(val) + ' tokens' : formatUSD(val)}
                             </div>
                           )}
@@ -492,7 +492,7 @@ export function Dashboard() {
             </div>
             <div className="flex ml-10 mt-1.5 text-[10px] font-medium text-stone-400">
               {[...Array(24)].map((_, i) => (
-                <div key={i} className="flex-1 text-center">{i % 2 === 0 ? i : ''}</div>
+                <div key={i} className="flex-1 text-center truncate">{i % 2 === 0 ? i : ''}</div>
               ))}
             </div>
           </div>
