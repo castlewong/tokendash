@@ -1,4 +1,4 @@
-# ccusage-dashboard
+# tokendash
 
 A beautiful, local web dashboard for visualizing your Claude Code and Codex token usage statistics.
 
@@ -23,14 +23,14 @@ It runs locally, fetches your data via the `ccusage` and `@ccusage/codex` CLI to
 You can run the dashboard directly using `npx` without installing it globally:
 
 ```bash
-npx ccusage-dashboard
+npx @zhangferry-dev/tokendash
 ```
 
 Or install it globally:
 
 ```bash
-npm install -g ccusage-dashboard
-ccusage-dashboard
+npm install -g @zhangferry-dev/tokendash
+tokendash
 ```
 
 By default, the backend server runs on port `3456`. When running the production build or installing globally, you access the dashboard at `http://localhost:3456`.
@@ -40,7 +40,7 @@ During development (`npm run dev`), Vite starts a separate development server on
 ### Command Line Options
 
 ```bash
-ccusage-dashboard [options]
+tokendash [options]
 
 Options:
   --port <number>    Port to run the server on (default: 3456 or PORT env var)
@@ -54,7 +54,7 @@ If you want to contribute or modify the dashboard locally:
 1. Clone the repository:
    ```bash
    git clone <repository-url>
-   cd ccusage-dashboard
+   cd tokendash
    ```
 
 2. Install dependencies:

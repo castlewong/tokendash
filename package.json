@@ -1,12 +1,15 @@
 {
-  "name": "ccusage-dashboard",
-  "version": "0.1.0",
+  "name": "@zhangferry-dev/tokendash",
+  "version": "1.0.0",
   "type": "module",
-  "description": "Web dashboard for ccusage token usage statistics",
+  "description": "Token Usage Analytics Dashboard",
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/server/index.js",
   "types": "./dist/server/index.d.ts",
   "bin": {
-    "ccusage-dashboard": "./dist/server/index.js"
+    "tokendash": "./dist/server/index.js"
   },
   "files": [
     "dist"
