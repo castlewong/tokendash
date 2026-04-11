@@ -26,12 +26,12 @@ function InsightCard({ label, title, detail, badge }: { label: string; title: st
   return (
     <div className="flex flex-col justify-between rounded-xl border border-gray-200 bg-white/60 p-4 shadow-sm backdrop-blur-sm">
       <div className="mb-2 flex items-start justify-between gap-3">
-        <p className="text-[10px] font-medium uppercase tracking-widest text-gray-500">{label}</p>
-        {badge ? <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-medium text-emerald-600">{badge}</span> : null}
+        <p className="text-[11px] font-bold uppercase tracking-[0.15em] text-gray-400">{label}</p>
+        {badge ? <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-bold tracking-wide text-emerald-700">{badge}</span> : null}
       </div>
       <div>
-        <p className="text-lg font-semibold tracking-tight text-gray-900">{title}</p>
-        <p className="mt-1 text-[11px] leading-relaxed text-gray-500">{detail}</p>
+        <p className="text-2xl font-black tracking-tight text-gray-900">{title}</p>
+        <p className="mt-1 text-xs font-medium leading-relaxed text-gray-500">{detail}</p>
       </div>
     </div>
   );
@@ -39,11 +39,11 @@ function InsightCard({ label, title, detail, badge }: { label: string; title: st
 
 function KPICard({ label, value, sub, insight, accent }: { label: string; value: string; sub?: string; insight?: string; accent?: boolean }) {
   return (
-    <div className="flex flex-col gap-1.5 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
-      <span className="text-[10px] font-medium tracking-widest uppercase text-gray-400">{label}</span>
-      <span className={`text-xl font-semibold tracking-tight font-mono ${accent ? 'text-emerald-600' : 'text-gray-900'}`}>{value}</span>
-      {sub && <span className="text-[11px] text-gray-400">{sub}</span>}
-      {insight && <div className="mt-1 pt-2 border-t border-gray-50 text-[10px] text-gray-500 leading-snug">{insight}</div>}
+    <div className="flex flex-col gap-1 p-4 rounded-xl bg-white border border-gray-200 shadow-sm">
+      <span className="text-[11px] font-bold tracking-[0.15em] uppercase text-gray-400">{label}</span>
+      <span className={`text-3xl font-black tracking-tighter font-mono mt-1 ${accent ? 'text-emerald-600' : 'text-gray-900'}`}>{value}</span>
+      {sub && <span className="text-xs font-medium text-gray-400 mt-0.5">{sub}</span>}
+      {insight && <div className="mt-2 pt-2 border-t border-gray-100 text-[11px] font-medium text-gray-500 leading-snug">{insight}</div>}
     </div>
   );
 }
@@ -51,9 +51,9 @@ function KPICard({ label, value, sub, insight, accent }: { label: string; value:
 function Panel({ title, subtitle, children, className = '' }: { title: string; subtitle?: string; children: React.ReactNode; className?: string }) {
   return (
     <div className={`flex flex-col rounded-xl bg-white border border-gray-200 p-5 shadow-sm ${className}`}>
-      <div className="mb-4">
-        <h3 className="text-sm font-semibold text-gray-800 tracking-wide">{title}</h3>
-        {subtitle && <p className="text-[11px] text-gray-500 mt-1">{subtitle}</p>}
+      <div className="mb-5">
+        <h3 className="text-base font-bold text-gray-900 tracking-tight">{title}</h3>
+        {subtitle && <p className="text-xs font-medium text-gray-500 mt-1">{subtitle}</p>}
       </div>
       <div className="flex-1 min-h-0">
         {children}
@@ -79,10 +79,10 @@ function TooltipBox({ active, payload, label, fmt = formatTokens }: { active?: b
 
 function FilterTab({ options, value, onChange }: { options: readonly { key: string; label: string }[]; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="flex items-center gap-0.5 p-0.5 bg-white rounded-lg border border-gray-200">
+    <div className="flex items-center gap-0.5 p-0.5 bg-gray-100/80 rounded-lg border border-gray-200">
       {options.map(o => (
         <button key={o.key} onClick={() => onChange(o.key)}
-          className={`px-3 py-1 rounded-md text-[11px] font-medium transition-all duration-200 ${value === o.key ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-700'}`}>
+          className={`px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wide transition-all duration-200 ${value === o.key ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
           {o.label}
         </button>
       ))}
@@ -93,7 +93,7 @@ function FilterTab({ options, value, onChange }: { options: readonly { key: stri
 function ProjectSelect({ projects, value, onChange }: { projects: string[]; value: string; onChange: (v: string) => void }) {
   return (
     <select value={value} onChange={e => onChange(e.target.value)}
-      className="bg-white border border-gray-200 rounded-lg px-3 py-1 text-[11px] font-medium text-gray-600 outline-none focus:border-emerald-300 max-w-[220px]">
+      className="bg-white border border-gray-200 rounded-lg px-3 py-1.5 text-[12px] font-semibold text-gray-800 outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 max-w-[220px]">
       <option value="">All Projects</option>
       {projects.map(p => <option key={p} value={p}>{p.split('/').pop() || p}</option>)}
     </select>
@@ -297,27 +297,44 @@ export function Dashboard() {
       {/* Narrative Header & Filter Bar */}
       <div className="mb-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-gray-900 mb-1">Usage Analytics</h1>
-          <p className="text-[13px] text-gray-500">
-            Currently viewing <span className="font-medium text-gray-900">{isCodex ? 'Codex' : 'Claude'}</span> usage
-            for <span className="font-medium text-gray-900">{TIME_RANGES.find(t => t.key === timeRange)?.label}</span>
-            {project ? <span> in project <span className="font-medium text-gray-900">{project.split('/').pop() || project}</span></span> : ' across all projects'}.
+          <h1 className="text-3xl font-black tracking-tight text-gray-900 mb-1.5">Usage Analytics</h1>
+          <p className="text-[14px] font-medium text-gray-500 leading-relaxed">
+            Currently viewing <span className="font-bold text-gray-800">{isCodex ? 'Codex' : 'Claude'}</span> usage
+            for <span className="font-bold text-gray-800">{TIME_RANGES.find(t => t.key === timeRange)?.label}</span>
+            {project ? <span> in project <span className="font-bold text-gray-800">{project.split('/').pop() || project}</span></span> : ' across all projects'}.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-0.5 p-0.5 bg-white rounded-lg border border-gray-200">
-            <button onClick={() => handleAgentChange('claude')}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all duration-200 ${agent === 'claude' ? 'bg-emerald-50 text-emerald-600' : 'text-gray-400 hover:text-gray-700'}`}>
-              Claude
-            </button>
-            <button onClick={() => handleAgentChange('codex')}
-              className={`px-3 py-1.5 rounded-md text-[11px] font-medium transition-all duration-200 ${agent === 'codex' ? 'bg-blue-50 text-blue-600' : 'text-gray-400 hover:text-gray-700'}`}>
-              Codex
-            </button>
+        <div className="flex flex-wrap items-center gap-6">
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Provider</span>
+            <div className="flex items-center gap-0.5 p-0.5 bg-gray-100/80 rounded-lg border border-gray-200">
+              <button onClick={() => handleAgentChange('claude')}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wide transition-all duration-200 ${agent === 'claude' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+                Claude
+              </button>
+              <button onClick={() => handleAgentChange('codex')}
+                className={`px-3 py-1.5 rounded-md text-[11px] font-bold tracking-wide transition-all duration-200 ${agent === 'codex' ? 'bg-gray-900 text-white shadow-sm' : 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'}`}>
+                Codex
+              </button>
+            </div>
           </div>
-          <FilterTab options={TIME_RANGES} value={timeRange} onChange={v => setTimeRange(v as TimeRangeKey)} />
-          {!isCodex && <ProjectSelect projects={projectList} value={project} onChange={setProject} />}
-          <FilterTab options={[{ key: 'tokens', label: 'Tokens' }, { key: 'usd', label: 'Cost' }]} value={metric} onChange={v => setMetric(v as MetricMode)} />
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Time Range</span>
+            <FilterTab options={TIME_RANGES} value={timeRange} onChange={v => setTimeRange(v as TimeRangeKey)} />
+          </div>
+
+          {!isCodex && (
+            <div className="flex flex-col gap-2">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Project</span>
+              <ProjectSelect projects={projectList} value={project} onChange={setProject} />
+            </div>
+          )}
+
+          <div className="flex flex-col gap-2">
+            <span className="text-[10px] font-bold uppercase tracking-widest text-gray-500">Metric</span>
+            <FilterTab options={[{ key: 'tokens', label: 'Tokens' }, { key: 'usd', label: 'Cost' }]} value={metric} onChange={v => setMetric(v as MetricMode)} />
+          </div>
         </div>
       </div>
 
@@ -468,26 +485,26 @@ export function Dashboard() {
         <div className="overflow-x-auto">
           <table className="w-full text-[11px] whitespace-nowrap">
             <thead>
-              <tr className="border-b border-gray-200">
-                <th className="text-left py-2.5 px-3 text-gray-400 font-medium uppercase tracking-wider text-[10px]">Date</th>
-                <th className="text-right py-2.5 px-3 text-gray-400 font-medium uppercase tracking-wider text-[10px]">Input</th>
-                <th className="text-right py-2.5 px-3 text-gray-400 font-medium uppercase tracking-wider text-[10px]">Output</th>
-                <th className="text-right py-2.5 px-3 text-gray-400 font-medium uppercase tracking-wider text-[10px]">Cache Read</th>
-                <th className="text-right py-2.5 px-3 text-gray-400 font-medium uppercase tracking-wider text-[10px]">Total Tokens</th>
-                <th className="text-right py-2.5 px-3 text-gray-400 font-medium uppercase tracking-wider text-[10px]">Cost</th>
-                <th className="text-left py-2.5 px-3 text-gray-400 font-medium uppercase tracking-wider text-[10px]">Models</th>
+              <tr className="border-b border-gray-200 bg-gray-50/50">
+                <th className="text-left py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Date</th>
+                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Input</th>
+                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Output</th>
+                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Cache Read</th>
+                <th className="text-right py-3 px-4 text-gray-800 font-bold uppercase tracking-widest text-[10px]">Total Tokens</th>
+                <th className="text-right py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Cost</th>
+                <th className="text-left py-3 px-4 text-gray-500 font-bold uppercase tracking-widest text-[10px]">Models</th>
               </tr>
             </thead>
             <tbody>
               {[...filteredDaily].reverse().slice(0, 30).map(d => (
-                <tr key={d.date} className="border-b border-gray-50 hover:bg-gray-50/80 transition-colors">
-                  <td className="py-2 px-3 text-gray-700 font-medium">{formatDate(d.date)}</td>
-                  <td className="py-2 px-3 text-right font-mono text-gray-500">{formatTokens(d.inputTokens)}</td>
-                  <td className="py-2 px-3 text-right font-mono text-gray-500">{formatTokens(d.outputTokens)}</td>
-                  <td className="py-2 px-3 text-right font-mono text-emerald-600/70">{formatTokens(d.cacheReadTokens)}</td>
-                  <td className="py-2 px-3 text-right font-mono font-semibold text-emerald-600">{formatTokens(d.totalTokens)}</td>
-                  <td className="py-2 px-3 text-right font-mono text-gray-600 bg-gray-50/30">{formatUSD(d.totalCost)}</td>
-                  <td className="py-2 px-3 text-gray-400 truncate max-w-[200px]">{d.modelsUsed.map(shortModelName).join(', ')}</td>
+                <tr key={d.date} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+                  <td className="py-2.5 px-4 text-gray-800 font-semibold">{formatDate(d.date)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono text-gray-500">{formatTokens(d.inputTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono text-gray-500">{formatTokens(d.outputTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono text-emerald-600/70">{formatTokens(d.cacheReadTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono font-bold text-emerald-600">{formatTokens(d.totalTokens)}</td>
+                  <td className="py-2.5 px-4 text-right font-mono font-medium text-gray-700 bg-gray-50/50">{formatUSD(d.totalCost)}</td>
+                  <td className="py-2.5 px-4 text-gray-500 font-medium truncate max-w-[200px]">{d.modelsUsed.map(shortModelName).join(', ')}</td>
                 </tr>
               ))}
             </tbody>
