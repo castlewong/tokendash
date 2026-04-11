@@ -4,6 +4,8 @@ A beautiful, local web dashboard for visualizing your Claude Code and Codex toke
 
 It runs locally, fetches your data via the `ccusage` and `@ccusage/codex` CLI tools, and presents it in a clean, interactive React dashboard.
 
+![Product Screenshoot](resources/product_screenshoot.png)
+
 ## Features
 
 - **Multi-Agent Support:** View usage for both Claude Code and Codex.
@@ -85,4 +87,4 @@ If you want to contribute or modify the dashboard locally:
 
 ## License
 
-MIT
+[MIT](./LICENSE)
