@@ -391,8 +391,39 @@ export function Dashboard() {
         <KPICard label="Output/Input" value={formatPercent(outputRatio)} insight="Ratio of generation to context." />
       </div>
 
-      {/* Row 1: Project Pie (left) + Cache Efficiency (right) */}
+      {/* Row 1: Cache Efficiency (left) + Project Pie (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <Panel title="Cache efficiency & savings">
+          <div className="flex items-center gap-6 mb-6 px-4 py-3 bg-emerald-50/50 rounded-xl border border-emerald-100/50">
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Est. Cost Saved</span>
+              <span className="text-2xl font-black text-emerald-600 tracking-tight">{formatUSD(cacheSavings.costSaved)}</span>
+            </div>
+            <div className="w-px h-8 bg-emerald-200/50"></div>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Tokens Saved</span>
+              <span className="text-lg font-extrabold text-emerald-700/80 tracking-tight font-mono">{formatTokens(cacheSavings.tokensSaved)}</span>
+            </div>
+            <div className="w-px h-8 bg-emerald-200/50"></div>
+            <div className="flex flex-col">
+              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Avg Hit Rate</span>
+              <span className="text-lg font-extrabold text-emerald-700/80 tracking-tight font-mono">{formatPercent(cacheSavings.hitRate)}</span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={210}>
+            <ComposedChart data={cacheTrendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis yAxisId="left" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatTokens(v)} />
+              <YAxis yAxisId="right" orientation="right" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
+              <Tooltip content={<TooltipBox />} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
+              <Area yAxisId="left" type="monotone" dataKey="cacheRead" stroke={C[5]} fill={C[5]} fillOpacity={0.08} name="Cache Read" strokeWidth={1.5} />
+              <Line yAxisId="right" type="monotone" dataKey="hitRate" stroke={C[3]} strokeWidth={2} dot={false} name="Hit Rate (%)" />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </Panel>
+
         {!isCodex && !project ? (
           <Panel title="Project distribution" subtitle={`Top 8 projects by ${isTokens ? 'tokens' : 'cost'}`}>
             <ResponsiveContainer width="100%" height={280}>
@@ -424,37 +455,6 @@ export function Dashboard() {
             </ResponsiveContainer>
           </Panel>
         ) : null}
-
-        <Panel title="Cache efficiency & savings">
-          <div className="flex items-center gap-6 mb-6 px-4 py-3 bg-emerald-50/50 rounded-xl border border-emerald-100/50">
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Est. Cost Saved</span>
-              <span className="text-2xl font-black text-emerald-600 tracking-tight">{formatUSD(cacheSavings.costSaved)}</span>
-            </div>
-            <div className="w-px h-8 bg-emerald-200/50"></div>
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Tokens Saved</span>
-              <span className="text-lg font-extrabold text-emerald-700/80 tracking-tight font-mono">{formatTokens(cacheSavings.tokensSaved)}</span>
-            </div>
-            <div className="w-px h-8 bg-emerald-200/50"></div>
-            <div className="flex flex-col">
-              <span className="text-[11px] font-bold text-emerald-600/70 uppercase tracking-wider mb-0.5">Avg Hit Rate</span>
-              <span className="text-lg font-extrabold text-emerald-700/80 tracking-tight font-mono">{formatPercent(cacheSavings.hitRate)}</span>
-            </div>
-          </div>
-          <ResponsiveContainer width="100%" height={210}>
-            <ComposedChart data={cacheTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis yAxisId="left" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => formatTokens(v)} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => `${v.toFixed(0)}%`} />
-              <Tooltip content={<TooltipBox />} />
-              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
-              <Area yAxisId="left" type="monotone" dataKey="cacheRead" stroke={C[5]} fill={C[5]} fillOpacity={0.08} name="Cache Read" strokeWidth={1.5} />
-              <Line yAxisId="right" type="monotone" dataKey="hitRate" stroke={C[3]} strokeWidth={2} dot={false} name="Hit Rate (%)" />
-            </ComposedChart>
-          </ResponsiveContainer>
-        </Panel>
       </div>
 
       {/* Row 2: Heatmap Row */}
