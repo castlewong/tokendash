@@ -211,24 +211,6 @@ export function Dashboard() {
     };
   }, [totals.cacheReadTokens, cacheHitRate]);
 
-  // Chart data: usage over time
-  const trendData = useMemo(() => {
-    if (isTokens) {
-      return filteredDaily.map(d => ({
-        date: formatDate(d.date),
-        input: d.inputTokens,
-        output: d.outputTokens,
-        cacheRead: d.cacheReadTokens,
-        total: d.totalTokens,
-        cost: d.totalCost,
-      }));
-    }
-    return filteredDaily.map(d => ({
-      date: formatDate(d.date),
-      cost: d.totalCost,
-    }));
-  }, [isTokens, filteredDaily]);
-
   // Model aggregation
   const modelAgg = useMemo(() => {
     const map: Record<string, { tokens: number; cost: number; input: number; output: number; cacheRead: number }> = {};
@@ -399,37 +381,6 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Insights Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <InsightCard
-          label="Top Driver"
-          title={modelAgg.length > 0 ? modelAgg[0].name : '-'}
-          detail={`Accounted for ${modelAgg.length > 0 && totals.totalTokens > 0 ? formatPercent((modelAgg[0].tokens / totals.totalTokens) * 100) : '0%'} of selected ${isTokens ? 'tokens' : 'cost'}.`}
-          badge="Model"
-        />
-        {!isCodex && !project ? (
-          <InsightCard
-            label="Highest usage"
-            title={projectPieData.length > 0 ? projectPieData[0].name : '-'}
-            detail={`Top project consumed ${projectPieData.length > 0 ? (isTokens ? formatTokens(projectPieData[0].tokens) : formatUSD(projectPieData[0].cost)) : '0'} total.`}
-            badge="Project"
-          />
-        ) : (
-          <InsightCard
-            label="Focus"
-            title={project ? formatProjectName(project, projectList) : 'Codex Global'}
-            detail={project ? 'Analyzing specific project usage pattern.' : 'Reviewing global Codex metrics.'}
-            badge="Scope"
-          />
-        )}
-        <InsightCard
-          label="Trend focus"
-          title="Top 6 Models"
-          detail="Trends are filtered to the top 6 contributing models to reduce noise."
-          badge="View"
-        />
-      </div>
-
       {/* KPI Row */}
       <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
         <KPICard label="Total tokens" value={formatTokens(totals.totalTokens)} accent insight="The primary volume indicator for the selected period." />
@@ -440,24 +391,7 @@ export function Dashboard() {
         <KPICard label="Output/Input" value={formatPercent(outputRatio)} insight="Ratio of generation to context." />
       </div>
 
-      {/* Row 1: Usage Over Time (full width) */}
-      <Panel title="Usage over time" className="mb-4">
-        <ResponsiveContainer width="100%" height={300}>
-          <ComposedChart data={trendData} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
-            <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} interval="preserveStartEnd" />
-            <YAxis tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
-            <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
-            <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
-            {isTokens && <Bar dataKey="cacheRead" stackId="a" fill={C[0]} fillOpacity={0.7} name="Cache Read" maxBarSize={24} />}
-            {isTokens && <Bar dataKey="input" stackId="a" fill={C[1]} fillOpacity={0.7} name="Input" maxBarSize={24} />}
-            {isTokens && <Bar dataKey="output" stackId="a" fill={C[2]} fillOpacity={0.7} name="Output" maxBarSize={24} />}
-            {!isTokens && <Area type="monotone" dataKey="cost" stroke={C[0]} fill={C[0]} fillOpacity={0.1} name="Cost" strokeWidth={1.5} />}
-          </ComposedChart>
-        </ResponsiveContainer>
-      </Panel>
-
-      {/* Row 2: Model Trend (left 60%) + Model Distribution (right 40%) */}
+      {/* Row 1: Model Trend (left 60%) + Model Distribution (right 40%) */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
         <Panel title="Model trend" subtitle="Showing top 6 models to maintain readability" className="lg:col-span-3">
           <ResponsiveContainer width="100%" height={260}>
@@ -491,7 +425,7 @@ export function Dashboard() {
         </Panel>
       </div>
 
-      {/* Row 3: Project Pie (left) + Cache Efficiency (right) */}
+      {/* Row 2: Project Pie (left) + Cache Efficiency (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {!isCodex && !project ? (
           <Panel title="Project distribution" subtitle={`Top 8 projects by ${isTokens ? 'tokens' : 'cost'}`}>
@@ -599,7 +533,7 @@ export function Dashboard() {
         )}
       </Panel>
 
-      {/* Row 4: Detail Table */}
+      {/* Row 3: Detail Table */}
       <Panel title="Daily detail" subtitle="Recent 30 days of usage breakdown">
         <div className="overflow-x-auto">
           <table className="w-full text-[11px] whitespace-nowrap">
