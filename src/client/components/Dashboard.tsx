@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import {
   BarChart, Bar, Cell, LineChart, Line,
-  ComposedChart, Area,
+  ComposedChart, Area, PieChart, Pie,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { fetchDaily, fetchProjects, fetchBlocks } from '../api/client.js';
@@ -518,17 +518,24 @@ export function Dashboard() {
 
         <Panel title="Model distribution" subtitle="Ranked by total volume" className="lg:col-span-2">
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={modelAgg.slice(0, 6)} layout="vertical" margin={{ left: 8, right: 8, top: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" horizontal={false} />
-              <XAxis type="number" tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
-              <YAxis type="category" dataKey="name" tick={{ fill: '#57534e', fontSize: 11 }} axisLine={false} tickLine={false} width={92} />
-              <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
-              <Bar dataKey={dataKey} radius={[0, 6, 6, 0]} maxBarSize={24}>
+            <PieChart margin={{ left: 0, right: 0, top: 0, bottom: 0 }}>
+              <Pie
+                data={modelAgg.slice(0, 6)}
+                dataKey={dataKey}
+                nameKey="name"
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={2}
+              >
                 {modelAgg.slice(0, 6).map((_, index) => (
-                  <Cell key={index} fill={C[index % C.length]} fillOpacity={0.85} />
+                  <Cell key={index} fill={C[index % C.length]} fillOpacity={0.85} stroke="transparent" />
                 ))}
-              </Bar>
-            </BarChart>
+              </Pie>
+              <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
+              <Legend layout="vertical" verticalAlign="middle" align="right" wrapperStyle={{ fontSize: 11 }} />
+            </PieChart>
           </ResponsiveContainer>
         </Panel>
       </div>
