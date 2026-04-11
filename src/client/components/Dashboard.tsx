@@ -391,41 +391,7 @@ export function Dashboard() {
         <KPICard label="Output/Input" value={formatPercent(outputRatio)} insight="Ratio of generation to context." />
       </div>
 
-      {/* Row 1: Model Trend (left 60%) + Model Distribution (right 40%) */}
-      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
-        <Panel title="Model trend" subtitle="Showing top 6 models to maintain readability" className="lg:col-span-3">
-          <ResponsiveContainer width="100%" height={260}>
-            <LineChart data={modelTrendData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
-              <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
-              <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
-              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
-              {modelAgg.slice(0, 6).map((m, i) => (
-                <Line key={m.name} type="monotone" dataKey={m.name} stroke={C[i % C.length]} strokeWidth={1.5} dot={false} />
-              ))}
-            </LineChart>
-          </ResponsiveContainer>
-        </Panel>
-
-        <Panel title="Model distribution" subtitle="Ranked by total volume" className="lg:col-span-2">
-          <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={modelAgg.slice(0, 6)} layout="vertical" margin={{ left: 8, right: 8, top: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" horizontal={false} />
-              <XAxis type="number" tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
-              <YAxis type="category" dataKey="name" tick={{ fill: '#57534e', fontSize: 11 }} axisLine={false} tickLine={false} width={92} />
-              <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
-              <Bar dataKey={dataKey} radius={[0, 6, 6, 0]} maxBarSize={24}>
-                {modelAgg.slice(0, 6).map((_, index) => (
-                  <Cell key={index} fill={C[index % C.length]} fillOpacity={0.85} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </Panel>
-      </div>
-
-      {/* Row 2: Project Pie (left) + Cache Efficiency (right) */}
+      {/* Row 1: Project Pie (left) + Cache Efficiency (right) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {!isCodex && !project ? (
           <Panel title="Project distribution" subtitle={`Top 8 projects by ${isTokens ? 'tokens' : 'cost'}`}>
@@ -491,7 +457,7 @@ export function Dashboard() {
         </Panel>
       </div>
 
-      {/* Heatmap Row */}
+      {/* Row 2: Heatmap Row */}
       <Panel title="24-Hour Activity Heatmap" subtitle={`Activity distribution by hour and day of week (based on ${isTokens ? 'tokens' : 'cost'})`} className="mb-4">
         {heatmapData ? (
           <div className="flex flex-col w-full overflow-x-auto pb-2">
@@ -533,7 +499,41 @@ export function Dashboard() {
         )}
       </Panel>
 
-      {/* Row 3: Detail Table */}
+      {/* Row 3: Model Trend (left 60%) + Model Distribution (right 40%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-4">
+        <Panel title="Model trend" subtitle="Showing top 6 models to maintain readability" className="lg:col-span-3">
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={modelTrendData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" vertical={false} />
+              <XAxis dataKey="date" tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: '#78716c', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
+              <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
+              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 12 }} />
+              {modelAgg.slice(0, 6).map((m, i) => (
+                <Line key={m.name} type="monotone" dataKey={m.name} stroke={C[i % C.length]} strokeWidth={1.5} dot={false} />
+              ))}
+            </LineChart>
+          </ResponsiveContainer>
+        </Panel>
+
+        <Panel title="Model distribution" subtitle="Ranked by total volume" className="lg:col-span-2">
+          <ResponsiveContainer width="100%" height={260}>
+            <BarChart data={modelAgg.slice(0, 6)} layout="vertical" margin={{ left: 8, right: 8, top: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" horizontal={false} />
+              <XAxis type="number" tick={{ fill: '#78716c', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={(v: number) => isTokens ? formatTokens(v) : formatUSD(v)} />
+              <YAxis type="category" dataKey="name" tick={{ fill: '#57534e', fontSize: 11 }} axisLine={false} tickLine={false} width={92} />
+              <Tooltip content={<TooltipBox fmt={isTokens ? formatTokens : formatUSD} />} />
+              <Bar dataKey={dataKey} radius={[0, 6, 6, 0]} maxBarSize={24}>
+                {modelAgg.slice(0, 6).map((_, index) => (
+                  <Cell key={index} fill={C[index % C.length]} fillOpacity={0.85} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </Panel>
+      </div>
+
+      {/* Row 4: Detail Table */}
       <Panel title="Daily detail" subtitle="Recent 30 days of usage breakdown">
         <div className="overflow-x-auto">
           <table className="w-full text-[11px] whitespace-nowrap">
