@@ -473,8 +473,8 @@ export function Dashboard() {
                       return (
                         <div
                           key={hourIdx}
-                          className="flex-1 rounded-[3px] relative group transition-all hover:ring-2 hover:ring-indigo-400 hover:ring-offset-1"
-                          style={{ backgroundColor: val > 0 ? `rgba(79, 70, 229, ${opacity})` : '#f5f5f4' }}
+                          className="flex-1 rounded-[3px] relative group transition-all hover:ring-2 hover:ring-emerald-400 hover:ring-offset-1"
+                          style={{ backgroundColor: val > 0 ? `rgba(16, 185, 129, ${opacity})` : '#ebedf0' }}
                         >
                           {val > 0 && (
                             <div className="absolute opacity-0 group-hover:opacity-100 z-10 bg-stone-900 text-white text-[10px] px-2 py-1 rounded bottom-full mb-1.5 left-1/2 -translate-x-1/2 pointer-events-none whitespace-nowrap shadow-lg font-mono">
